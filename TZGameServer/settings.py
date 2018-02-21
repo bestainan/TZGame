@@ -27,7 +27,7 @@ DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
 # Application definition
-STATIC_ROOT = '/static/'
+
 INSTALLED_APPS = [
     'django.contrib.admin',
     'django.contrib.auth',
@@ -44,7 +44,7 @@ INSTALLED_APPS = [
     'reversion',
 
 ]
-SITE_ID = 1
+
 CORS_ORIGIN_WHITELIST = (
     'google.com',
     'hostname.example.com',
