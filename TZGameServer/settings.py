@@ -144,3 +144,31 @@ USE_TZ = True
 STATIC_URL = '/static/'
 
 TEMPLATE_DIRS = (os.path.join(BASE_DIR, 'templates'),)
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': True,
+    'formatters': {
+        'verbose': {
+            'format': '%(levelname)s %(asctime)s %(module)s %(process)d %(thread)d %(message)s'
+        },
+        'websocket': {
+            'format': '%(asctime)s %(process)d:%(name)s %(levelname)s: %(message)s'
+        }
+    },
+    'handlers': {
+        'file': {
+            'level': 'DEBUG',
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': os.path.join(os.getenv('TEMP') if (os.name == 'nt') else '/var/log/django', 'web.log'),
+            'maxBytes': 1024 * 1024 * 20,
+            'backupCount': 20,
+            'formatter': 'verbose'
+        },
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['file'],
+            'level': 'INFO',
+        },
+    }
+}

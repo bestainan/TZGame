@@ -104,6 +104,12 @@ def phone_code(request):
             v_code = random.randint(1000, 9999)
             # todo:阿里云发送验证码逻辑
             print(v_code)
+            print('############')
+            import logging
+            logger = logging.getLogger("django")  # 为loggers中定义的名称
+            logger.info(v_code)
+            print('############')
+
             cli = AliyunSMS(access_key_id='LTAIumaptAEoL3Xr', access_secret='xgQgKuSZ8RvOIMxrk8e7eqSHejqtza')
             cli.request(phone_numbers='18777777105',
                                sign='王者挑战赛',
