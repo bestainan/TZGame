@@ -108,7 +108,6 @@ def phone_code(request):
                                sign='王者挑战赛',
                                template_code='SMS_126260131',
                                template_param={'code': str(v_code)})
-            print(resp)
             # 存session
             expire_time = timezone.now() + timezone.timedelta(seconds=60)
             Session.objects.create(session_key=tel, session_data=v_code, expire_date=expire_time)
