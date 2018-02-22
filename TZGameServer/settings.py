@@ -24,7 +24,7 @@ SECRET_KEY = 'rjqsjb$!195!7rg=zih(nkcp7o&9424yk2r#v#f-a_n#+jr+o-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*','wz.jiuxingjinfu.cn']
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -46,7 +46,7 @@ INSTALLED_APPS = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    'wz.jiuxingjinfu.cn'
+    'tzadmin.jiuxingjinfu.cn'
     'localhost:8000',
     'localhost:8084',
     '127.0.0.1:8000'
