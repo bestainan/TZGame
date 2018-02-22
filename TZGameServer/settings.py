@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 CORS_ORIGIN_WHITELIST = (
     'localhost:8084',
     'tzadmin.jiuxingjinfu.cn',
+    'wz.jiuxingjinfu.cn',
 )
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
