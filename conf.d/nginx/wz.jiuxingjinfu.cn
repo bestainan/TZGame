@@ -1,11 +1,11 @@
 server {
     listen 80;
-    server_name wz.jiuxingjinfu.cn;
+    server_name wz.jiuxingjinfu.cn 39.106.117.188;
 
     access_log /var/log/nginx/wz.jiuxingjinfu.cn--access.log main;
     error_log /var/log/nginx/wz.jiuxingjinfu.cn-error.log notice;
 
-    root /home/www/game-apple/dist/;;
+    root /home/www/game-apple/dist/;
     index index.html;
 
 
