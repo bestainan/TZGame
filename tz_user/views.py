@@ -31,7 +31,7 @@ def login(request):
         md5.update(user.username.encode("utf8"))
         base64_code = md5.hexdigest()
         expire_time = timezone.now() + timezone.timedelta(days=7)
-        Session.objects.update_or_create(session_key=base64_code, session_data=user.tz_user.id, expire_date=expire_time)
+        Session.objects.update_or_create(session_key=base64_code, defaults={'session_data': user.tz_user.id, 'expire_date': expire_time})
         data['data'] = {
             'nickname': user.tz_user.nickname,
             'tel': user.tz_user.tel,
@@ -112,9 +112,9 @@ def phone_code(request):
 
             cli = AliyunSMS(access_key_id='LTAIumaptAEoL3Xr', access_secret='xgQgKuSZ8RvOIMxrk8e7eqSHejqtza')
             cli.request(phone_numbers='18777777105',
-                               sign='王者挑战赛',
-                               template_code='SMS_126260131',
-                               template_param={'code': str(v_code)})
+                        sign='王者挑战赛',
+                        template_code='SMS_126260131',
+                        template_param={'code': str(v_code)})
             # 存session
             expire_time = timezone.now() + timezone.timedelta(seconds=60)
             Session.objects.create(session_key=tel, session_data=v_code, expire_date=expire_time)
