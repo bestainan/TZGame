@@ -47,10 +47,11 @@ INSTALLED_APPS = [
 
 CORS_ORIGIN_WHITELIST = (
     'google.com',
+    'jiuxingjinfu.cn'
     'hostname.example.com',
     'localhost:8000',
     'localhost:8084',
-    '127.0.0.1:9000'
+    '127.0.0.1:8000'
 )
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
