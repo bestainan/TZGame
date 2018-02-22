@@ -103,8 +103,9 @@ def phone_code(request):
         else:
             v_code = random.randint(1000, 9999)
             # todo:阿里云发送验证码逻辑
+            print(v_code)
             cli = AliyunSMS(access_key_id='LTAIumaptAEoL3Xr', access_secret='xgQgKuSZ8RvOIMxrk8e7eqSHejqtza')
-            resp = cli.request(phone_numbers='18777777105',
+            cli.request(phone_numbers='18777777105',
                                sign='王者挑战赛',
                                template_code='SMS_126260131',
                                template_param={'code': str(v_code)})
