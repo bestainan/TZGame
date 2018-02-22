@@ -31,7 +31,7 @@ def login(request):
         md5.update(user.username.encode("utf8"))
         base64_code = md5.hexdigest()
         expire_time = timezone.now() + timezone.timedelta(days=7)
-        Session.objects.create(session_key=base64_code, session_data=user.tz_user.id, expire_date=expire_time)
+        Session.objects.update_or_create(session_key=base64_code, session_data=user.tz_user.id, expire_date=expire_time)
         data['data'] = {
             'nickname': user.tz_user.nickname,
             'tel': user.tz_user.tel,
