@@ -46,9 +46,7 @@ INSTALLED_APPS = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    'google.com',
     'wz.jiuxingjinfu.cn'
-    'hostname.example.com',
     'localhost:8000',
     'localhost:8084',
     '127.0.0.1:8000'
