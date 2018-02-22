@@ -1,6 +1,6 @@
    server {
         listen      80;
-        server_name wz.jiuxingjinfu.com;
+        server_name tzadmin.jiuxingjinfu.com;
         charset     utf-8;
         gzip on;
         gzip_min_length  5k;
