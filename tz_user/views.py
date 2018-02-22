@@ -13,6 +13,7 @@ import base64
 from django.utils.six import b
 from django.views.decorators.http import require_POST, require_GET
 
+from TZGameServer.utils import AliyunSMS
 from exception.base import TZBaseError
 from tz_user.forms import SignUpForm
 import hashlib
@@ -102,7 +103,12 @@ def phone_code(request):
         else:
             v_code = random.randint(1000, 9999)
             # todo:阿里云发送验证码逻辑
-            print(v_code)
+            cli = AliyunSMS(access_key_id='LTAIumaptAEoL3Xr', access_secret='xgQgKuSZ8RvOIMxrk8e7eqSHejqtza')
+            resp = cli.request(phone_numbers='18777777105',
+                               sign='王者挑战赛',
+                               template_code='SMS_126260131',
+                               template_param={'code': str(v_code)})
+            print(resp)
             # 存session
             expire_time = timezone.now() + timezone.timedelta(seconds=60)
             Session.objects.create(session_key=tel, session_data=v_code, expire_date=expire_time)
@@ -135,5 +141,4 @@ def register(request):
     except TZBaseError as e:
         data['msg'] = e.msg
         data['code'] = e.code
-    print(data)
     return JsonResponse(data=data)
