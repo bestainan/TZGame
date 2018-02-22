@@ -1,0 +1,19 @@
+server {
+    listen 80;
+    server_name wz.jiuxingjinfu.cn;
+
+    access_log /var/log/nginx/h5-paquapp-access.log main;
+    error_log /var/log/nginx/h5-paquapp-error.log notice;
+
+    root /home/www/TZGame;;
+    index index.html;
+
+
+    location / {
+        try_files $uri $uri/ @router;
+        index index.html;
+    }
+    location @router {
+        rewrite ^.*$ /index.html last;
+    }
+}
