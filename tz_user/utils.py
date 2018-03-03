@@ -1,4 +1,5 @@
 # coding: utf-8
+import random
 import re
 
 def check_phone(phone):
@@ -8,3 +9,6 @@ def check_phone(phone):
         if p.match(phone):
             return True
     return False
+
+def invite_code():
+    return random.randint(1000,9999999)

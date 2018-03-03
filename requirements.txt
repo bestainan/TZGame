@@ -1,6 +1,7 @@
 Django==2.0.2
 mysqlclient
 django-cors-headers
-django-xadmin
+#django-xadmin
 gevent
 gunicorn
+requests

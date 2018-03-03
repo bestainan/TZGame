@@ -5,7 +5,7 @@ from django.db.models import Q
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm
 
-from exception.user_error import UserHasExist, TelRequire, TelNumberError, PasswordRequire, BankCardRequire, CardNameRequire, BankNameRequire, ALiPayNameRequire, ALiPayAccountRequire, PasswordsDifferent
+from exception.user_error import UserHasExist, TelRequire, TelNumberError, PasswordRequire, BankCardRequire, CardNameRequire, BankNameRequire, ALiPayNameRequire, ALiPayAccountRequire, PasswordsDifferent, UserDoesNotExist
 from tz_user.models import TZUser
 from tz_user.utils import check_phone
 
@@ -13,6 +13,7 @@ from tz_user.utils import check_phone
 class SignUpForm(forms.Form):
     tel = forms.CharField(max_length=11, required=False)
     nickname = forms.CharField(required=False)
+    invite_code = forms.CharField(required=False)
     # captcha = forms.CharField(max_length=4, required=True)
     password1 = forms.CharField(required=False)
     password2 = forms.CharField(required=False)
@@ -25,7 +26,6 @@ class SignUpForm(forms.Form):
     def clean_bank_type(self):
         bank_type = self.cleaned_data['bank_type']
         if bank_type == 'bank':
-            print(self.data.get('card_name'))
             if not self.data.get('card_name'):
                 raise CardNameRequire()
             if not self.data.get('card_account'):
@@ -44,7 +44,6 @@ class SignUpForm(forms.Form):
             raise TelRequire()
         if not check_phone(tel):
             raise TelNumberError(0)
-        print(TZUser.objects.filter(tel=tel))
         if TZUser.objects.filter(tel=tel):
             raise UserHasExist()
         return tel
@@ -86,8 +85,12 @@ class SignUpForm(forms.Form):
             "nickname": nickname,
             "tel": user_name,
         }
-        print ('###########')
-        print(bank_type)
+        if self.cleaned_data['invite_code']:
+            invite_user = TZUser.objects.filter(invite_code=self.cleaned_data['invite_code']).first()
+            if invite_user:
+                q['invite_user'] = invite_user
+            else:
+                raise UserDoesNotExist()
         if bank_type == 'bank':
             q['bank_card_name'] = self.data.get('card_name')
             q['bank_account'] = self.data.get('card_account')
@@ -95,8 +98,7 @@ class SignUpForm(forms.Form):
         else:
             q['alipay_name'] = self.data.get('alipay_name')
             q['alipay_account'] = self.data.get('alipay_account')
-        print (q)
-        print ('###########')
+
         tz_user = TZUser.objects.create(**q)
         Session.objects.filter(session_key=user_name).delete()
         return tz_user

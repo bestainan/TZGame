@@ -17,7 +17,7 @@ from TZGameServer.utils import AliyunSMS
 from exception.base import TZBaseError
 from tz_user.forms import SignUpForm
 import hashlib
-from tz_user.models import TZUser
+from tz_user.models import TZUser, Mail
 
 
 @require_POST
@@ -103,15 +103,12 @@ def phone_code(request):
         else:
             v_code = random.randint(1000, 9999)
             # todo:阿里云发送验证码逻辑
-            print(v_code)
-            print('############')
             import logging
             logger = logging.getLogger("django")  # 为loggers中定义的名称
             logger.info(v_code)
-            print('############')
 
             cli = AliyunSMS(access_key_id='LTAIumaptAEoL3Xr', access_secret='xgQgKuSZ8RvOIMxrk8e7eqSHejqtza')
-            cli.request(phone_numbers='18777777105',
+            cli.request(phone_numbers=tel,
                         sign='王者挑战赛',
                         template_code='SMS_126260131',
                         template_param={'code': str(v_code)})
@@ -124,7 +121,6 @@ def phone_code(request):
 
 @require_POST
 def register(request):
-    """达人微信快捷注册"""
     signup_form = SignUpForm(request.POST)
     data = {}
     try:
@@ -147,4 +143,18 @@ def register(request):
     except TZBaseError as e:
         data['msg'] = e.msg
         data['code'] = e.code
+    return JsonResponse(data=data)
+
+@require_GET
+def mail(request):
+    data = []
+    user_id = request.GET.get('user_id')
+    mails = Mail.objects.filter(user=user_id)
+    for _mail in mails:
+        data.append({
+            'id': _mail.id,
+            'title': _mail.title,
+            'info': _mail.info,
+            'user': _mail.user,
+        })
     return JsonResponse(data=data)
