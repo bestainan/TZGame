@@ -6,6 +6,7 @@ import time
 from django.contrib.auth import authenticate
 from django.contrib.sessions.models import Session
 from django.db import IntegrityError
+from django.db.models import Sum
 from django.http import JsonResponse
 from django.utils import timezone
 import base64
@@ -15,6 +16,7 @@ from django.views.decorators.http import require_POST, require_GET
 
 from TZGameServer.utils import AliyunSMS
 from exception.base import TZBaseError
+from game_room.models import ApplyDetail
 from tz_user.forms import SignUpForm
 import hashlib
 from tz_user.models import TZUser, Mail
@@ -56,8 +58,10 @@ def check_token(request):
         if user:
             data['code'] = 1
             data['data'] = {
+                'id':user.id,
                 'nickname': user.nickname,
-                'tel': user.tel
+                'tel': user.tel,
+                'invite_code': user.invite_code
             }
         else:
             data['code'] = 404
@@ -145,6 +149,7 @@ def register(request):
         data['code'] = e.code
     return JsonResponse(data=data)
 
+
 @require_GET
 def mail(request):
     data = []
@@ -158,3 +163,19 @@ def mail(request):
             'user': _mail.user,
         })
     return JsonResponse(data=data)
+
+
+@require_GET
+def invite_user(request):
+    data = []
+    user_id = request.GET.get('user_id')
+    invite_users = TZUser.objects.filter(invite_user=user_id)
+    for _u in invite_users:
+        data.append(
+            {
+                'name': _u.nickname,
+                'count': TZUser.objects.filter(invite_user=_u.id).count(),
+                'apply_money':ApplyDetail.objects.filter(user=_u).aggregate(Sum('money'))['money__sum'] or 0
+            }
+        )
+    return JsonResponse(data={'data': data})

@@ -22,7 +22,7 @@ class TZUser(BaseTime):
     bank_account = models.CharField(_('银行卡号'), max_length=64, null=True, blank=True)
     bank_card_name = models.CharField(_('银行户名'), max_length=20, null=True, blank=True)
     money = models.IntegerField(u'余额', default=0)
-    invite_user = models.ForeignKey('self', related_name='invite', null=True, blank=True, on_delete=SET_NULL)
+    invite_user = models.ForeignKey('self', related_name='invite', null=True, blank=True, on_delete=CASCADE)
     invite_code = models.IntegerField(default=invite_code, unique=True)
     class Meta:
         verbose_name = '用户信息'
@@ -39,3 +39,14 @@ class Mail(BaseTime):
     title = models.CharField(_('标题'), max_length=200, null=True, blank=True)
     info = models.CharField(_('内容'), max_length=200, null=True, blank=True)
     user = models.ForeignKey(User, related_name='mails', on_delete=CASCADE)
+
+    class Meta:
+        verbose_name = '消息'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return '%s' % self.title
+
+    def __unicode__(self):
+        return '%s' % self.title
+

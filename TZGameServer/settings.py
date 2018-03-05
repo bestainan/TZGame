@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 CORS_ORIGIN_WHITELIST = (
     'localhost:8080',
     '127.0.0.1:8080',
+    '127.0.0.1:8081',
     'tzadmin.jiuxingjinfu.cn',
     'wz.jiuxingjinfu.cn',
 )
@@ -106,6 +107,8 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+
+PROJECT_DIR = '/Users/robot/TZGame'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators

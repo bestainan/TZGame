@@ -98,7 +98,11 @@ class SignUpForm(forms.Form):
         else:
             q['alipay_name'] = self.data.get('alipay_name')
             q['alipay_account'] = self.data.get('alipay_account')
-
-        tz_user = TZUser.objects.create(**q)
+        while 1:
+            try:
+                tz_user = TZUser.objects.create(**q)
+                break
+            except:
+                continue
         Session.objects.filter(session_key=user_name).delete()
         return tz_user
