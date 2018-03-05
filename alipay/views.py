@@ -52,7 +52,7 @@ def alipay_info(request):
 
 
     # 支付宝支付异步回调,验签等操作
-def alipay_callback(self, request, format=None):
+def alipay_callback(request):
     print(request.POST)
     print(request.GET)
     return JsonResponse(data={'data': 'OK'})

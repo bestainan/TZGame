@@ -27,5 +27,6 @@ urlpatterns = [
     path('', xadmin.site.urls),
     path('user/', include("tz_user.urls")),
     path('game/', include("game_room.urls")),
+    path('alipay/', include("alipay.urls")),
 
 ]
