@@ -138,6 +138,7 @@ def apply_history(request):
     return JsonResponse(data={'data': data})
 
 
+@require_POST
 def room_apply(request):
     room_id = request.POST.get('room_id')
     user_id = request.POST.get('user_id')
@@ -155,7 +156,6 @@ def room_apply(request):
     data = {}
     _data = json.loads(res.content).get('data')
     data['signed_string'] = _data.get('signed_string')
-    print(data)
     return JsonResponse(data={'data': data})
 
 def room_apply_balance(request):

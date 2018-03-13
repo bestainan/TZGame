@@ -28,8 +28,6 @@ ALIPAY_TRADE_REFUND_MSG = {
 def alipay_info(request):
     order_id = request.GET.get('order_id')
     user_id = request.GET.get('user_id')
-    print(order_id)
-    print(user_id)
     order = ApplyDetail.objects.get(pk=order_id, user_id=user_id)
     alipay = AliPay(
         appid=PRO_APP_ID,
