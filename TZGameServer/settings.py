@@ -24,7 +24,7 @@ SECRET_KEY = 'rjqsjb$!195!7rg=zih(nkcp7o&9424yk2r#v#f-a_n#+jr+o-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', 'tzadmin.jiuxingjinfu.cn', 'wz.jiuxingjinfu.cn','192.168.0.104','192.168.0.100']
+ALLOWED_HOSTS = ['*', ]
 
 # Application definition
 
@@ -47,17 +47,7 @@ INSTALLED_APPS = [
 ]
 
 CORS_ORIGIN_WHITELIST = (
-    'localhost:8080',
-    '127.0.0.1:8080',
-    '127.0.0.1:8082',
-    'localhost:8081',
-    '192.168.0.104:8081',
-    '192.168.0.100:8081',
-    '192.168.0.104:8080',
-    'localhost:8082',
-    '127.0.0.1:8081',
-    'tzadmin.jiuxingjinfu.cn',
-    'wz.jiuxingjinfu.cn',
+    '*',
 )
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
