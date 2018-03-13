@@ -24,7 +24,7 @@ SECRET_KEY = 'rjqsjb$!195!7rg=zih(nkcp7o&9424yk2r#v#f-a_n#+jr+o-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', ]
+ALLOWED_HOSTS = ['*', 'wz.jiuxingjinfu.cn', ]
 
 # Application definition
 
@@ -48,6 +48,7 @@ INSTALLED_APPS = [
 
 CORS_ORIGIN_WHITELIST = (
     '*',
+    'wz.jiuxingjinfu.cn',
 )
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
