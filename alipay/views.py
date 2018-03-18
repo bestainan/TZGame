@@ -51,7 +51,11 @@ def alipay_info(request):
 
     # 支付宝支付异步回调,验签等操作
 def alipay_callback(request):
-    print(request.POST)
+    print(request.GET)
+    order_id = request.GET.get('order_id')
+    if order_id:
+        ApplyDetail.objects.get(pk=order_id)
+        request.GET.get('order_id')
     print(request.GET)
     return JsonResponse(data={'data': 'OK'})
 

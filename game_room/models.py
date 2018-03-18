@@ -100,7 +100,12 @@ APPLY_STATUS = (
 )
 
 
+def order_oid():
+    return str(int(time.time() * 1000)) + str(int(random.random() * 1000000))
+
+
 class ApplyDetail(BaseTime):
+    id = models.CharField('订单id', max_length=256, primary_key=True)
     money = models.IntegerField(_('报名金额'))
     user = models.ForeignKey(TZUser, null=True, blank=True, on_delete=CASCADE)
     room = models.ForeignKey(Room, related_name='apply_detail', null=True, blank=True, on_delete=CASCADE)
