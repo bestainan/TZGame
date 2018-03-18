@@ -143,9 +143,10 @@ def room_apply(request):
     room_id = request.POST.get('room_id')
     user_id = request.POST.get('user_id')
     room = Room.objects.get(pk=room_id)
+    user = TZUser.objects.get(pk=user_id)
     a_d = ApplyDetail.objects.create(
         money = room.apply_money,
-        user=TZUser.objects.get(pk=user_id),
+        user=user,
         room=room
     )
     request.GET._mutable = True
