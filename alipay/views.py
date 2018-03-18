@@ -34,7 +34,6 @@ def alipay_info(request):
         app_notify_url='http://tzadmin.jiuxingjinfu.cn/alipay/callback/',
         app_private_key_path='%s/alipay/private.pem' % settings.PROJECT_DIR,
         alipay_public_key_path='',
-        method='alipay.trade.wap.pay',
         sign_type ='RSA2',
         debug = False
     )
