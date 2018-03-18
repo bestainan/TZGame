@@ -45,8 +45,7 @@ def alipay_info(request):
         'signed_string': signed_string
     }
     result = {'returnCode': 1, 'error': 'success', 'data': data}
-    response = HttpResponse(content=json.dumps(result))
-    return response
+    return result
 
 
     # 支付宝支付异步回调,验签等操作

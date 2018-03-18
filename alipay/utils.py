@@ -1,10 +1,5 @@
 #!/usr/bin/env python
 # coding: utf-8
-"""
-    __init__.py
-    ~~~~~~~~~~
-
-"""
 import json
 from datetime import datetime
 from Crypto.Hash import SHA, SHA256
