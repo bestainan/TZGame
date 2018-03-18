@@ -29,6 +29,10 @@ class UserDoesNotExist(TZBaseError):
     code = 404
     msg = u'用户不存在'
 
+class InviteUserDoesNotExist(TZBaseError):
+    code = 404
+    msg = u'邀请人不存在'
+
 class AddressDoesNotExist(TZBaseError):
     code = 404
     msg = u'收货地址不存在'

@@ -62,8 +62,8 @@ def check_token(request):
             data['data'] = {
                 'id': user.id,
                 'invite_code': user.invite_code,
-                'nickname': user.tz_user.nickname,
-                'tel': user.tz_user.tel,
+                'nickname': user.nickname,
+                'tel': user.tel,
             }
         else:
             data['code'] = 404

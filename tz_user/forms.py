@@ -5,7 +5,7 @@ from django.db.models import Q
 from django import forms
 from django.contrib.auth.forms import UserCreationForm, AuthenticationForm, SetPasswordForm
 
-from exception.user_error import UserHasExist, TelRequire, TelNumberError, PasswordRequire, BankCardRequire, CardNameRequire, BankNameRequire, ALiPayNameRequire, ALiPayAccountRequire, PasswordsDifferent, UserDoesNotExist
+from exception.user_error import UserHasExist, TelRequire, TelNumberError, PasswordRequire, BankCardRequire, CardNameRequire, BankNameRequire, ALiPayNameRequire, ALiPayAccountRequire, PasswordsDifferent, UserDoesNotExist, InviteUserDoesNotExist
 from tz_user.models import TZUser
 from tz_user.utils import check_phone
 
@@ -90,7 +90,7 @@ class SignUpForm(forms.Form):
             if invite_user:
                 q['invite_user'] = invite_user
             else:
-                raise UserDoesNotExist()
+                raise InviteUserDoesNotExist()
         if bank_type == 'bank':
             q['bank_card_name'] = self.data.get('card_name')
             q['bank_account'] = self.data.get('card_account')
