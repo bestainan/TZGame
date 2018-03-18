@@ -109,7 +109,7 @@ DATABASES = {
 }
 
 # PROJECT_DIR = '/Users/robot/TZGame'
-PROJECT_DIR = '/home/data/www/TZGame'
+PROJECT_DIR = '/home/www/TZGame'
 
 # Password validation
 # https://docs.djangoproject.com/en/2.0/ref/settings/#auth-password-validators
