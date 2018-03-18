@@ -155,6 +155,9 @@ def room_apply(request):
     request.GET._mutable = False
     res = alipay_info(request)
     data = {}
+    import logging
+    logger = logging.getLogger("django")  # 为loggers中定义的名称
+    logger.info(res.content)
     _data = json.loads(res.content).get('data')
     data['signed_string'] = _data.get('signed_string')
     return JsonResponse(data={'data': data})
