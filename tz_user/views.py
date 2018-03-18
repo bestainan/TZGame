@@ -35,6 +35,8 @@ def login(request):
         expire_time = timezone.now() + timezone.timedelta(days=7)
         Session.objects.update_or_create(session_key=base64_code, defaults={'session_data': user.tz_user.id, 'expire_date': expire_time})
         data['data'] = {
+            'id':user.tz_user.id,
+            'invite_code':user.tz_user.invite_code,
             'nickname': user.tz_user.nickname,
             'tel': user.tz_user.tel,
             'token': base64_code,
@@ -58,10 +60,10 @@ def check_token(request):
         if user:
             data['code'] = 1
             data['data'] = {
-                'id':user.id,
-                'nickname': user.nickname,
-                'tel': user.tel,
-                'invite_code': user.invite_code
+                'id': user.id,
+                'invite_code': user.invite_code,
+                'nickname': user.tz_user.nickname,
+                'tel': user.tz_user.tel,
             }
         else:
             data['code'] = 404
