@@ -50,68 +50,54 @@ def alipay_info(request):
 
     # 支付宝支付异步回调,验签等操作
 def alipay_callback(request):
-    print(request.GET)
-    order_id = request.GET.get('order_id')
-    if order_id:
-        ApplyDetail.objects.get(pk=order_id)
-        request.GET.get('order_id')
-    print(request.GET)
-    return JsonResponse(data={'data': 'OK'})
-
-    # result = 'failure'
-    # alipay = AliPay(
-    #     appid=PRO_APP_ID,
-    #     app_notify_url='',
-    #     app_private_key_path='',
-    #     alipay_public_key_path='%s/alipay/pro_public.pem' % settings.PROJECT_DIR,
-    #     sign_type = 'RSA2',
-    #     debug = False
-    # )
-    # request.data._mutable = True
-    # data = request.data
-    # signature = data.pop('sign')[0]
-    # print(json.dumps(data))
-    # print(signature)
-    # success = alipay.verify(data, signature)
-    # trade_no = data.get('trade_no', None)
-    # out_trade_no = data.get('out_trade_no')
-    # total_amount = data.get('total_amount')
-    # gmt_payment = data.get('gmt_payment')
-    # seller_id = data.get('seller_id')
-    # app_id = data.get('app_id')
-    # if success:
-    #     order = Order.objects.get(pk=out_trade_no)
-    #     if not order:
-    #         return HttpResponse(result)
-    #     if not total_amount == utils.format_number(order.price, decimal_places=2, max_digits=10):
-    #         # print u'订单号:%s，支付金额%s与订单金额不符，请检查' % (out_trade_no, total_amount)
-    #         return HttpResponse(result)
-    #     if not seller_id == SELLER_ID:
-    #         # print u'订单号:%s，返回的商户ID(%s)不符，请检查' % (out_trade_no, seller_id)
-    #         return HttpResponse(result)
-    #     if not app_id == alipay.appid:
-    #         # print u'订单号:%s，返回的APP_ID(%s)不符，请检查' % (out_trade_no, app_id)
-    #         return HttpResponse(result)
-    #     trade_status = data.get('trade_status')
-    #     if trade_status == u'TRADE_SUCCESS' or trade_status == u'TRADE_FINISHED':
-    #         # 修改order状态
-    #         if order.status in [1, 7]:
-    #             order.status = 2  # 已付款
-    #         result = 'success'
-    #     elif trade_status == u'TRADE_CLOSED': # 订单支付超时或已退款
-    #         result = 'success'
-    #     else:
-    #         order.status = 7 if not order.status == 6 else 6 # 支付失败，前端显示未支付，可重复支付，如果订单正好自动关闭，则状态不变
-    #         # print u'订单号:%s，支付宝返回状态:%s' % (out_trade_no, trade_status)
-    #     # print 333
-    #     order.trade_id = trade_no
-    #     order.update_time = timezone.now()
-    #     order.gmt_payment = timezone.datetime.strptime(gmt_payment, '%Y-%m-%d %H:%M:%S')
-    #     # print 444
-    #     order.save()
-    #     # print 'success'
-    #     return HttpResponse(result)
-    # else:
-    #     # print u'订单号:%s，验签失败' % out_trade_no
-    #     return HttpResponse(result)
-
+    def post(self, request, format=None):
+        result = 'failure'
+        alipay = AliPay(
+            appid=PRO_APP_ID,
+            app_notify_url='',
+            app_private_key_path='',
+            alipay_public_key_path='%s/alipay/pro_public.pem' % settings.PROJECT_DIR,
+            sign_type = 'RSA2',
+            debug = False
+        )
+        request.data._mutable = True
+        data = request.data
+        signature = data.pop('sign')[0]
+        success = alipay.verify(data, signature)
+        trade_no = data.get('trade_no', None)
+        out_trade_no = data.get('out_trade_no')
+        total_amount = data.get('total_amount')
+        gmt_payment = data.get('gmt_payment')
+        seller_id = data.get('seller_id')
+        app_id = data.get('app_id')
+        if success:
+            order = ApplyDetail.objects.get(pk=out_trade_no)
+            if not total_amount == utils.format_number(order.price, decimal_places=2, max_digits=10):
+                print(u'订单号:%s，支付金额%s与订单金额不符，请检查' % (out_trade_no, total_amount))
+                return HttpResponse(result)
+            if not seller_id == SELLER_ID:
+                print(u'订单号:%s，返回的商户ID(%s)不符，请检查' % (out_trade_no, seller_id))
+                return HttpResponse(result)
+            if not app_id == alipay.appid:
+                print(u'订单号:%s，返回的APP_ID(%s)不符，请检查' % (out_trade_no, app_id))
+                return HttpResponse(result)
+            trade_status = data.get('trade_status')
+            if trade_status == u'TRADE_SUCCESS' or trade_status == u'TRADE_FINISHED':
+                # 修改order状态
+                # 预售
+                result = 'success'
+            else:
+                # 预售
+                if order.type == 1:
+                    order.status = 15 if not order.status == 6 else 6
+                else:
+                    order.status = 7 if not order.status == 6 else 6 # 支付失败，前端显示未支付，可重复支付，如果订单正好自动关闭，则状态不变
+                print(u'订单号:%s，支付宝返回状态:%s' % (out_trade_no, trade_status))
+            order.trade_id = trade_no
+            order.update_time = timezone.now()
+            order.gmt_payment = timezone.datetime.strptime(gmt_payment, '%Y-%m-%d %H:%M:%S')
+            order.save()
+            return HttpResponse(result)
+        else:
+            print(u'订单号:%s，验签失败' % out_trade_no)
+            return HttpResponse(result)
