@@ -138,7 +138,7 @@ def register(request):
         if signup_form.is_valid():
             user = signup_form.save(commit=True)
             data['code'] = 1
-            expire_time = timezone.now() + timezone.timedelta(days=7)
+            expire_time = timezone.now() + timezone.timedelta(days=3)
             md5 = hashlib.md5()
             md5.update(user.tel.encode("utf8"))
             base64_code = md5.hexdigest()
