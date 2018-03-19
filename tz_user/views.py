@@ -16,6 +16,7 @@ from django.views.decorators.http import require_POST, require_GET
 
 from TZGameServer.utils import AliyunSMS
 from exception.base import TZBaseError
+from exception.user_error import UserExist
 from game_room.models import ApplyDetail
 from tz_user.forms import SignUpForm
 import hashlib
@@ -74,52 +75,58 @@ def check_token(request):
 def phone_code(request):
     data = {}
     tel = request.GET.get('tel', '') or request.POST.get('tel', '')
+    user = TZUser.objects.filter(tel=tel)
+    try:
+        if user:
+            raise UserExist()
+        if request.method == 'GET':
+            v_code = request.GET.get('code', '')
+            # 取session
 
-    if request.method == 'GET':
-        v_code = request.GET.get('code', '')
-        # 取session
-
-        session_key = Session.objects.filter(session_key=tel).first()
-        if not session_key:
-            data['code'] = 400
-            data['msg'] = '验证码过期'
-        elif not tel:
-            data['code'] = 400
-            data['msg'] = '请填写手机号'
-        elif session_key.session_data == v_code:
-            # 验证成功
-            data['code'] = 1
-        else:
-            data['code'] = 400
-            data['msg'] = '验证码错误'
-
-    if request.method == 'POST':
-        sission_time = Session.objects.filter(session_key=tel).first()
-        if sission_time:
-            ex_time = int(time.mktime(sission_time.expire_date.timetuple()))
-            if (time.time() - ex_time) > 60:
-                sission_time.delete()
+            session_key = Session.objects.filter(session_key=tel).first()
+            if not session_key:
+                data['code'] = 400
+                data['msg'] = '验证码过期'
+            elif not tel:
+                data['code'] = 400
+                data['msg'] = '请填写手机号'
+            elif session_key.session_data == v_code:
+                # 验证成功
+                data['code'] = 1
             else:
                 data['code'] = 400
-                data['msg'] = '操作太频繁'
-                return JsonResponse(data=data)
-        if not tel:
-            data['code'] = 400
-            data['msg'] = '请填写手机号'
-        else:
-            v_code = random.randint(1000, 9999)
-            import logging
-            logger = logging.getLogger("django")  # 为loggers中定义的名称
-            logger.info(v_code)
-            cli = AliyunSMS(access_key_id='LTAIumaptAEoL3Xr', access_secret='xgQgKuSZ8RvOIMxrk8e7eqSHejqtza')
-            cli.request(phone_numbers=tel,
-                        sign='王者挑战赛',
-                        template_code='SMS_126260131',
-                        template_param={'code': str(v_code)})
-            # 存session
-            expire_time = timezone.now() + timezone.timedelta(seconds=60)
-            Session.objects.create(session_key=tel, session_data=v_code, expire_date=expire_time)
-            data['code'] = 1
+                data['msg'] = '验证码错误'
+
+        if request.method == 'POST':
+            sission_time = Session.objects.filter(session_key=tel).first()
+            if sission_time:
+                ex_time = int(time.mktime(sission_time.expire_date.timetuple()))
+                if (time.time() - ex_time) > 60:
+                    sission_time.delete()
+                else:
+                    data['code'] = 400
+                    data['msg'] = '操作太频繁'
+                    return JsonResponse(data=data)
+            if not tel:
+                data['code'] = 400
+                data['msg'] = '请填写手机号'
+            else:
+                v_code = random.randint(1000, 9999)
+                import logging
+                logger = logging.getLogger("django")  # 为loggers中定义的名称
+                logger.info(v_code)
+                cli = AliyunSMS(access_key_id='LTAIumaptAEoL3Xr', access_secret='xgQgKuSZ8RvOIMxrk8e7eqSHejqtza')
+                cli.request(phone_numbers=tel,
+                            sign='王者挑战赛',
+                            template_code='SMS_126260131',
+                            template_param={'code': str(v_code)})
+                # 存session
+                expire_time = timezone.now() + timezone.timedelta(seconds=60)
+                Session.objects.create(session_key=tel, session_data=v_code, expire_date=expire_time)
+                data['code'] = 1
+    except TZBaseError as e:
+        data['code'] = e.code
+        data['msg'] = e.msg
     return JsonResponse(data=data)
 
 

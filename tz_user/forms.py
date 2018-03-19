@@ -14,7 +14,7 @@ class SignUpForm(forms.Form):
     tel = forms.CharField(max_length=11, required=False)
     nickname = forms.CharField(required=False)
     invite_code = forms.CharField(required=False)
-    # captcha = forms.CharField(max_length=4, required=True)
+    v_code = forms.CharField(max_length=4, required=True)
     password1 = forms.CharField(required=False)
     password2 = forms.CharField(required=False)
     bank_type = forms.CharField(required=False)
@@ -48,15 +48,6 @@ class SignUpForm(forms.Form):
             raise UserHasExist()
         return tel
 
-    #
-    # def clean_captcha(self):
-    #     session_captcha = self.request.session.get('verification_num', 100)
-    #     captcha = self.cleaned_data['captcha']
-    #     if 6 <= len(str(captcha)) < 5:
-    #         raise forms.ValidationError(u'验证码是5位。')
-    #     if str(session_captcha) != str(captcha):
-    #         raise forms.ValidationError(u'验证码错误。')
-    #
     def clean_password1(self):
         password1 = self.cleaned_data['password1']
         if not password1:

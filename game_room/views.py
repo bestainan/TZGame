@@ -5,21 +5,10 @@ import random
 
 import time
 
-from django.contrib.auth import authenticate
-from django.contrib.sessions.models import Session
-from django.db import IntegrityError
 from django.http import JsonResponse
-from django.utils import timezone
-import base64
-
-from django.utils.six import b
 from django.views.decorators.http import require_POST, require_GET
-
 from alipay.views import alipay_info
-from exception.base import TZBaseError
 from game_room.models import Room, Banner, Game, ApplyDetail
-from tz_user.forms import SignUpForm
-import hashlib
 from tz_user.models import TZUser
 
 
