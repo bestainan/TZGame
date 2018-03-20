@@ -7,12 +7,16 @@ import time
 
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
-from alipay.views import alipay_info
+
+from TZGameServer.middlewares import auth_required
+from exception.base import TZBaseError
+from exception.room_error import ApplyAlready
 from game_room.models import Room, Banner, Game, ApplyDetail
 from tz_user.models import TZUser
 
 
 @require_GET
+@auth_required
 def games(request):
     data = []
     is_hot = request.GET.get('hot')
@@ -20,7 +24,6 @@ def games(request):
         games = Game.objects.filter(is_hot=1)
     else:
         games = Game.objects.all()
-
     for _game in games:
         data.append({
             'id': _game.id,
@@ -32,6 +35,7 @@ def games(request):
 
 
 @require_GET
+@auth_required
 def room(request):
     game_id = request.GET.get('game_id')
     hot = request.GET.get('hot')
@@ -54,10 +58,15 @@ def room(request):
 
 
 @require_GET
+@auth_required
 def room_info(request):
     room_id = request.GET.get('room_id')
+    user = request.user
     room = Room.objects.filter(pk=room_id).first()
     rank = []
+    has_apply = False
+    if ApplyDetail.objects.filter(user=user, room=room):
+        has_apply = True
     for _rank in room.rank.all():
         rank.append(
             {
@@ -75,12 +84,14 @@ def room_info(request):
         "des": room.des,
         "max_count": room.max_count,
         "current_count": room.current_count,
+        "has_apply": has_apply,
         "rank": rank,
     }
     return JsonResponse(data={'data': data})
 
 
 @require_GET
+@auth_required
 def banners(request):
     data = []
     banners = Banner.objects.all()
@@ -94,15 +105,17 @@ def banners(request):
 
 
 @require_GET
+@auth_required
 def apply_history(request):
     data = []
-    user_id = request.GET.get('user_id')
-    detail = ApplyDetail.objects.filter(user=user_id)
+    user = request.user
+    detail = ApplyDetail.objects.filter(user=user)
     for _d in detail:
         data.append(
-            [{
-
-                'money': _d.money,
+            {
+                'id':_d.id,
+                'room_id':_d.room_id,
+                'money': _d.money or 0,
                 'value_list': [
                     {
                         'label': '房间名称',
@@ -122,31 +135,49 @@ def apply_history(request):
                         'value': _d.room.des
                     }
                 ]
-            }]
+            }
         )
+        print(data)
     return JsonResponse(data={'data': data})
 
 
 @require_POST
+@auth_required
 def room_apply(request):
+    data = {}
     room_id = request.POST.get('room_id')
     user_id = request.POST.get('user_id')
     room = Room.objects.get(pk=room_id)
     user = TZUser.objects.get(pk=user_id)
-    a_d = ApplyDetail.objects.create(
-        money = room.apply_money,
-        user=user,
-        room=room
-    )
-    request.GET._mutable = True
-    request.GET['order_id'] = a_d.id
-    request.GET['user_id'] = user_id
-    request.GET._mutable = False
-    res = alipay_info(request)
-    data = {}
-    _data = res.get('data')
-    data['signed_string'] = _data.get('signed_string')
+    a_d = ApplyDetail.objects.filter(user=user)
+    try:
+        if a_d:
+            raise ApplyAlready()
+        a_d = ApplyDetail.objects.create(
+            money=room.apply_money,
+            user=user,
+            room=room,
+            status=1,
+        )
+        room.current_count += 1
+        room.save()
+        data = {
+            'code': 1,
+            'msg': '报名成功'
+        }
+    except TZBaseError as e:
+        data['msg'] = e.msg
+        data['code'] = e.code
+    # request.GET._mutable = True
+    # request.GET['order_id'] = a_d.id
+    # request.GET['user_id'] = user_id
+    # request.GET._mutable = False
+    # res = alipay_info(request)
+    # data = {}
+    # _data = res.get('data')
+    # data['signed_string'] = _data.get('signed_string')
     return JsonResponse(data={'data': data})
+
 
 def room_apply_balance(request):
     room_id = request.POST.get('room_id')

@@ -14,6 +14,7 @@ import base64
 from django.utils.six import b
 from django.views.decorators.http import require_POST, require_GET
 
+from TZGameServer.middlewares import auth_required
 from TZGameServer.utils import AliyunSMS
 from exception.base import TZBaseError
 from exception.user_error import UserExist
@@ -36,8 +37,8 @@ def login(request):
         expire_time = timezone.now() + timezone.timedelta(days=7)
         Session.objects.update_or_create(session_key=base64_code, defaults={'session_data': user.tz_user.id, 'expire_date': expire_time})
         data['data'] = {
-            'id':user.tz_user.id,
-            'invite_code':user.tz_user.invite_code,
+            'id': user.tz_user.id,
+            'invite_code': user.tz_user.invite_code,
             'nickname': user.tz_user.nickname,
             'tel': user.tz_user.tel,
             'token': base64_code,
@@ -145,9 +146,11 @@ def register(request):
             Session.objects.create(session_key=base64_code, session_data=user.id, expire_date=expire_time)
 
             data['data'] = {
+                'id': user.id,
                 'token': base64_code,
                 'tel': user.tel,
                 'nickname': user.nickname,
+                'invite_code': user.invite_code,
             }
         else:
             print(signup_form.errors)
@@ -158,18 +161,23 @@ def register(request):
 
 
 @require_GET
+@auth_required
 def mail(request):
     data = []
-    user_id = request.GET.get('user_id')
-    mails = Mail.objects.filter(user=user_id)
+    user = request.user
+    print(user)
+    mails = Mail.objects.filter(user=user)
     for _mail in mails:
         data.append({
             'id': _mail.id,
+            'meta': {
+                'date': _mail.created.strftime("%Y-%m-%d %H:%M:%S"),
+            },
             'title': _mail.title,
-            'info': _mail.info,
-            'user': _mail.user,
+            'desc': _mail.info,
+            'user': _mail.user.nickname,
         })
-    return JsonResponse(data=data)
+    return JsonResponse(data={'data': data})
 
 
 @require_GET
@@ -182,7 +190,7 @@ def invite_user(request):
             {
                 'name': _u.nickname,
                 'count': TZUser.objects.filter(invite_user=_u.id).count(),
-                'apply_money':ApplyDetail.objects.filter(user=_u).aggregate(Sum('money'))['money__sum'] or 0
+                'apply_money': ApplyDetail.objects.filter(user=_u).aggregate(Sum('money'))['money__sum'] or 0
             }
         )
     return JsonResponse(data={'data': data})

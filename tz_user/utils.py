@@ -12,3 +12,5 @@ def check_phone(phone):
 
 def invite_code():
     return random.randint(1000,9999999)
+
+

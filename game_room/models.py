@@ -33,7 +33,7 @@ class Game(BaseTime):
 ROOM_STATUS = (
     (1, u'未开始'),
     (2, u'进行中'),
-    (2, u'已结束'),
+    (3, u'已结束'),
 )
 
 

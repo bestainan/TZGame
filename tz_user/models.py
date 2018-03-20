@@ -38,7 +38,7 @@ class TZUser(BaseTime):
 class Mail(BaseTime):
     title = models.CharField(_('标题'), max_length=200, null=True, blank=True)
     info = models.CharField(_('内容'), max_length=200, null=True, blank=True)
-    user = models.ForeignKey(User, related_name='mails', on_delete=CASCADE)
+    user = models.ForeignKey(TZUser, related_name='mails', on_delete=CASCADE)
 
     class Meta:
         verbose_name = '消息'
