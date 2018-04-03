@@ -1,4 +1,6 @@
 from django.contrib import admin
+from xadmin.views import filter_hook, UpdateAdminView
+
 from .models import TZUser, Mail
 import xadmin
 
@@ -15,7 +17,6 @@ class TZUserMailAdmin(object):
     list_display = ['title', 'info', 'user']
     search_fields = ['title', 'user']
     # list_filter = ['code', 'email', 'send_type', 'send_time']
-
 
 
 xadmin.site.register(TZUser, TZUserAdmin)

@@ -24,6 +24,8 @@ class TZUser(BaseTime):
     money = models.IntegerField(u'余额', default=0)
     invite_user = models.ForeignKey('self', related_name='invite', null=True, blank=True, on_delete=CASCADE)
     invite_code = models.IntegerField(default=invite_code, unique=True)
+    card = models.IntegerField('激活卡',default=0)
+
     class Meta:
         verbose_name = '用户信息'
         verbose_name_plural = verbose_name

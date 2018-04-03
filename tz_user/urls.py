@@ -1,5 +1,5 @@
 from django.conf.urls import url
-from tz_user.views import register, phone_code, login, check_token, mail, invite_user
+from tz_user.views import register, phone_code, login, check_token, mail, invite_user, card
 
 urlpatterns = [
     url(r'^register/$', register),
@@ -8,5 +8,5 @@ urlpatterns = [
     url(r'^mail/$', mail),
     url(r'^phone/code/$', phone_code),
     url(r'^invite/$', invite_user),
-
+    url(r'^card/$', card),
 ]

@@ -42,13 +42,14 @@ def login(request):
             'nickname': user.tz_user.nickname,
             'tel': user.tz_user.tel,
             'token': base64_code,
+            'card': user.tz_user.card,
         }
     else:
         data['code'] = 404
         data['msg'] = '用户不存在'
     return JsonResponse(data=data)
 
-
+api/v1/market/product/409/?platform=ios&signature=4b8e4ac2b8fe209ec504eb63ba9005ba&version=3.4.1 (10.110.0.1) 16.47ms
 @require_GET
 def check_token(request):
     data = {}
@@ -66,6 +67,7 @@ def check_token(request):
                 'invite_code': user.invite_code,
                 'nickname': user.nickname,
                 'tel': user.tel,
+                'card': user.card,
             }
         else:
             data['code'] = 404
@@ -151,6 +153,7 @@ def register(request):
                 'tel': user.tel,
                 'nickname': user.nickname,
                 'invite_code': user.invite_code,
+                'card': user.card,
             }
         else:
             print(signup_form.errors)
@@ -181,6 +184,7 @@ def mail(request):
 
 
 @require_GET
+@auth_required
 def invite_user(request):
     data = []
     user_id = request.GET.get('user_id')
@@ -193,4 +197,23 @@ def invite_user(request):
                 'apply_money': ApplyDetail.objects.filter(user=_u).aggregate(Sum('money'))['money__sum'] or 0
             }
         )
+    return JsonResponse(data={'data': data})
+
+
+@require_POST
+@auth_required
+def card(request):
+    data = {}
+    card_type = request.POST.get('card_type')
+
+    user = request.user
+    print(card_type)
+    if card_type == 5:
+        user.card += 5
+    elif card_type == 2:
+        user.card += 2
+    else:
+        user.card += 1
+    user.save()
+    data['code'] = 1
     return JsonResponse(data={'data': data})
