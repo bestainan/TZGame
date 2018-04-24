@@ -167,7 +167,7 @@ def room_apply(request):
         game_password = room.game_password
         Mail.objects.create(
             title='报名成功',
-            info=f'请登录游戏，密码：{game_password}',
+            info='请登录游戏，密码：{game_password}'.format(game_password=game_password),
             user=user
         )
         data = {
@@ -197,7 +197,7 @@ def room_apply_balance(request):
 def upload_img(request):
     name = str(request.FILES['file'])
     handle_upload_file(request.FILES['file'], str(request.FILES['file']))
-    return JsonResponse(data={'url': f'http://192.168.0.103:8000/media/uploads/{name}'})
+    return JsonResponse(data={'url': 'http://192.168.0.103:8000/media/uploads/{name}'.format(name=name)})
 
 
 def handle_upload_file(file, filename):
