@@ -36,6 +36,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django_crontab',
     'corsheaders',
     'tz_user',
     'game_room',
@@ -53,7 +54,8 @@ CORS_ORIGIN_WHITELIST = (
     'localhost:8082',
     '192.168.0.103:8080',
     '192.168.0.103:8081',
-    'localhost:8081'
+    'localhost:8081',
+    '127.0.0.1:8080'
 )
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
@@ -147,9 +149,13 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
+MEDIA_URL='/media/'
+MEDIA_ROOT=os.path.join(BASE_DIR,'media').replace("\\","/")
 
 STATIC_URL = '/static/'
-
+CRONJOBS = [
+    ('*/1 * * * *', 'game_room.tasks.scan_room', '>> /var/log/paqu/scan_room.log'),
+]
 TEMPLATE_DIRS = (os.path.join(BASE_DIR, 'templates'),)
 LOGGING = {
     'version': 1,

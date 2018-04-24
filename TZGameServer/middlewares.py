@@ -7,7 +7,9 @@ from tz_user.models import TZUser
 def auth_required(view):
     def decorator(request, *args, **kwargs):
         data = {}
-        token = request.POST.get('token') or request.GET.get('token')
+        print(request.GET)
+        print(request.POST)
+        token = request.POST.get('tztoken') or request.GET.get('tztoken')
         try:
             session = Session.objects.filter(session_key=token).first()
             if not session:

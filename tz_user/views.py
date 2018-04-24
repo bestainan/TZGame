@@ -41,7 +41,7 @@ def login(request):
             'invite_code': user.tz_user.invite_code,
             'nickname': user.tz_user.nickname,
             'tel': user.tz_user.tel,
-            'token': base64_code,
+            'tztoken': base64_code,
             'card': user.tz_user.card,
         }
     else:
@@ -49,11 +49,12 @@ def login(request):
         data['msg'] = '用户不存在'
     return JsonResponse(data=data)
 
-api/v1/market/product/409/?platform=ios&signature=4b8e4ac2b8fe209ec504eb63ba9005ba&version=3.4.1 (10.110.0.1) 16.47ms
+
 @require_GET
 def check_token(request):
     data = {}
-    token = request.GET.get('token')
+    print(request.COOKIES)
+    token = request.GET.get('tztoken')
     session = Session.objects.filter(session_key=token).first()
     if not session:
         data['code'] = 404
@@ -205,7 +206,6 @@ def invite_user(request):
 def card(request):
     data = {}
     card_type = request.POST.get('card_type')
-
     user = request.user
     print(card_type)
     if card_type == 5:

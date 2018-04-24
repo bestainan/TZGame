@@ -1,6 +1,7 @@
 # # coding:utf-8
 import json
 
+import os
 import random
 
 import time
@@ -11,8 +12,8 @@ from django.views.decorators.http import require_POST, require_GET
 from TZGameServer.middlewares import auth_required
 from exception.base import TZBaseError
 from exception.room_error import ApplyAlready
-from game_room.models import Room, Banner, Game, ApplyDetail
-from tz_user.models import TZUser
+from game_room.models import Room, Banner, Game, ApplyDetail, CheckWinner
+from tz_user.models import TZUser, Mail
 
 
 @require_GET
@@ -113,8 +114,8 @@ def apply_history(request):
     for _d in detail:
         data.append(
             {
-                'id':_d.id,
-                'room_id':_d.room_id,
+                'id': _d.id,
+                'room_id': _d.room_id,
                 'money': _d.money or 0,
                 'value_list': [
                     {
@@ -147,20 +148,28 @@ def room_apply(request):
     data = {}
     room_id = request.POST.get('room_id')
     user_id = request.POST.get('user_id')
+    name = request.POST.get('name')
     room = Room.objects.get(pk=room_id)
     user = TZUser.objects.get(pk=user_id)
     a_d = ApplyDetail.objects.filter(user=user)
     try:
         if a_d:
             raise ApplyAlready()
-        a_d = ApplyDetail.objects.create(
+        ApplyDetail.objects.create(
             money=room.apply_money,
+            nickname=name,
             user=user,
             room=room,
             status=1,
         )
         room.current_count += 1
         room.save()
+        game_password = room.game_password
+        Mail.objects.create(
+            title='报名成功',
+            info=f'请登录游戏，密码：{game_password}',
+            user=user
+        )
         data = {
             'code': 1,
             'msg': '报名成功'
@@ -183,3 +192,20 @@ def room_apply_balance(request):
     room_id = request.POST.get('room_id')
     user_id = request.POST.get('user_id')
     return JsonResponse(data={'data': []})
+
+
+def upload_img(request):
+    name = str(request.FILES['file'])
+    handle_upload_file(request.FILES['file'], str(request.FILES['file']))
+    return JsonResponse(data={'url': f'http://192.168.0.103:8000/media/uploads/{name}'})
+
+
+def handle_upload_file(file, filename):
+    print(file)
+    print(filename)
+    path = 'media/uploads/'  # 上传文件的保存路径，可以自己指定任意的路径
+    if not os.path.exists(path):
+        os.makedirs(path)
+    with open(path + filename, 'wb+')as destination:
+        for chunk in file.chunks():
+            destination.write(chunk)

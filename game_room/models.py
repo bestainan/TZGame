@@ -14,10 +14,10 @@ from tz_user.models import TZUser
 
 
 class Game(BaseTime):
-    name = models.CharField(_('游戏名称'), max_length=200, null=True, blank=True)
-    des = models.CharField(_('描述'), max_length=200, null=True, blank=True)
-    pic = models.CharField(_('图片地址'), max_length=200, null=True, blank=True)
-    is_hot = models.IntegerField(_('热门'), default=0)
+    name = models.CharField('游戏名称', max_length=200, null=True, blank=True)
+    des = models.CharField('描述', max_length=200, null=True, blank=True)
+    pic = models.CharField('图片地址', max_length=200, null=True, blank=True)
+    is_hot = models.IntegerField('热门', default=0)
 
     class Meta:
         verbose_name = '游戏列表'
@@ -32,22 +32,26 @@ class Game(BaseTime):
 
 ROOM_STATUS = (
     (1, u'未开始'),
-    (2, u'进行中'),
-    (3, u'已结束'),
+    (2, u'开始报名'),
+    (3, u'结束报名'),
+    (4, u'游戏结束'),
 )
 
 
 class Room(BaseTime):
-    name = models.CharField(_('房间名称'), max_length=200, null=True, blank=True)
-    apply_money = models.IntegerField(_('报名费'))
-    hot = models.BooleanField(default=False)
+    name = models.CharField('房间名称', max_length=200, null=True, blank=True)
+    apply_money = models.IntegerField('报名费')
+    hot = models.BooleanField('热门',default=False)
     status = models.IntegerField(u'状态', choices=ROOM_STATUS, default=1)
-    pic = models.CharField(_('图片地址'), max_length=200, null=True, blank=True)
-    des = models.TextField(_('描述'), max_length=200, null=True, blank=True)
-    max_count = models.IntegerField(_('最大人数'))
-    current_count = models.IntegerField(_('当前人数'), default=0, null=True, blank=True)
+    pic = models.CharField('图片地址', max_length=200, null=True, blank=True)
+    des = models.TextField('描述', max_length=200, null=True, blank=True)
+    max_count = models.IntegerField('最大人数')
+    current_count = models.IntegerField('当前人数', default=0, null=True, blank=True)
     apply = models.ManyToManyField(TZUser, related_name='room', verbose_name='报名信息', null=True, blank=True)
-    game = models.ForeignKey(Game, related_name='rooms', null=True, blank=True, on_delete=CASCADE)
+    game = models.ForeignKey(Game, verbose_name='游戏名称',related_name='rooms', null=True, blank=True, on_delete=CASCADE)
+    start_time = models.DateTimeField(u'开始报名时间')
+    end_time = models.DateTimeField(u'结束报名时间')
+    game_password = models.CharField('游戏密码', max_length=200, null=True, blank=True)
 
     class Meta:
         verbose_name = '房间信息'
@@ -63,7 +67,7 @@ class Room(BaseTime):
 class Rank(BaseTime):
     room = models.ForeignKey(Room, related_name='rank', null=True, blank=True, on_delete=CASCADE)
     user = models.ForeignKey(TZUser, null=True, blank=True, on_delete=CASCADE)
-    index = models.IntegerField(_('排名'))
+    index = models.IntegerField('排名')
 
     class Meta:
         verbose_name = '房间排行'
@@ -107,9 +111,11 @@ def order_oid():
 class ApplyDetail(BaseTime):
     id = models.CharField('订单id', max_length=256, default=order_oid, primary_key=True)
     trade_id = models.CharField('支付宝订单ID', max_length=128)  # 支付宝交易号
+    nickname = models.CharField('游戏角色名', max_length=128)  # 支付宝交易号
     gmt_payment = models.DateTimeField('支付时间', null=True, blank=True)  # 支付时间
-    money = models.IntegerField(_('报名金额'))
+    money = models.IntegerField('报名金额')
     user = models.ForeignKey(TZUser, null=True, blank=True, on_delete=CASCADE)
+
     room = models.ForeignKey(Room, related_name='apply_detail', null=True, blank=True, on_delete=CASCADE)
     status = models.IntegerField(u'状态', choices=APPLY_STATUS, default=1)
 
@@ -129,3 +135,9 @@ ORDER_TYPE = (
     (2, u'充值'),
 
 )
+
+
+class CheckWinner(BaseTime):
+    room_id = models.IntegerField('房间ID')
+    game_user_name = models.CharField('游戏昵称',max_length=32)
+    img = models.CharField(u'状态', max_length=512)

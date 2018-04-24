@@ -13,9 +13,11 @@ Including another URLconf
     1. Import the include() function: from django.urls import include, path
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
+from django.conf import settings
 from django.urls import path
-from django.conf.urls import include
+from django.conf.urls import include, url
 import xadmin
+from django.conf.urls.static import static
 
 xadmin.autodiscover()
 
@@ -24,9 +26,9 @@ from xadmin.plugins import xversion
 xversion.register_models()
 
 urlpatterns = [
-    path('', xadmin.site.urls),
-    path('user/', include("tz_user.urls")),
-    path('game/', include("game_room.urls")),
-    path('alipay/', include("alipay.urls")),
+                  path('', xadmin.site.urls),
+                  path('user/', include("tz_user.urls")),
+                  path('game/', include("game_room.urls")),
+                  path('alipay/', include("alipay.urls")),
 
-]
+              ] + static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
