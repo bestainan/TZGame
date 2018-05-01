@@ -1,4 +1,5 @@
 # # coding:utf-8
+import hashlib
 import json
 
 import os
@@ -149,9 +150,11 @@ def room_apply(request):
     room_id = request.POST.get('room_id')
     user_id = request.POST.get('user_id')
     name = request.POST.get('name')
+    print(room_id)
     room = Room.objects.get(pk=room_id)
     user = TZUser.objects.get(pk=user_id)
-    a_d = ApplyDetail.objects.filter(user=user)
+    a_d = ApplyDetail.objects.filter(user=user, room=room)
+    print(a_d)
     try:
         if a_d:
             raise ApplyAlready()
@@ -195,17 +198,30 @@ def room_apply_balance(request):
 
 
 def upload_img(request):
-    name = str(request.FILES['file'])
+    name = hashlib.new('md5', str(request.FILES['file']).encode()).hexdigest()
     handle_upload_file(request.FILES['file'], str(request.FILES['file']))
     return JsonResponse(data={'url': 'http://192.168.0.103:8000/media/uploads/{name}'.format(name=name)})
 
 
 def handle_upload_file(file, filename):
-    print(file)
-    print(filename)
     path = 'media/uploads/'  # 上传文件的保存路径，可以自己指定任意的路径
     if not os.path.exists(path):
         os.makedirs(path)
     with open(path + filename, 'wb+')as destination:
         for chunk in file.chunks():
             destination.write(chunk)
+
+
+def winner(request):
+
+
+
+    room_id = request.POST.get('room_id')
+    name = request.POST.get('name')
+    img = request.POST.get('img')
+    CheckWinner.objects.create(
+        room_id=room_id,
+        game_user_name=name,
+        img=img
+    )
+    return JsonResponse(data={'code': 1})

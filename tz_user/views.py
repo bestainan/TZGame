@@ -170,7 +170,7 @@ def mail(request):
     data = []
     user = request.user
     print(user)
-    mails = Mail.objects.filter(user=user)
+    mails = Mail.objects.filter(user=user).order_by('-id')
     for _mail in mails:
         data.append({
             'id': _mail.id,
@@ -205,7 +205,7 @@ def invite_user(request):
 @auth_required
 def card(request):
     data = {}
-    card_type = request.POST.get('card_type')
+    card_type = int(request.POST.get('card_type'))
     user = request.user
     print(card_type)
     if card_type == 5:

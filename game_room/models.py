@@ -41,14 +41,14 @@ ROOM_STATUS = (
 class Room(BaseTime):
     name = models.CharField('房间名称', max_length=200, null=True, blank=True)
     apply_money = models.IntegerField('报名费')
-    hot = models.BooleanField('热门',default=False)
+    hot = models.BooleanField('热门', default=False)
     status = models.IntegerField(u'状态', choices=ROOM_STATUS, default=1)
     pic = models.CharField('图片地址', max_length=200, null=True, blank=True)
     des = models.TextField('描述', max_length=200, null=True, blank=True)
     max_count = models.IntegerField('最大人数')
     current_count = models.IntegerField('当前人数', default=0, null=True, blank=True)
     apply = models.ManyToManyField(TZUser, related_name='room', verbose_name='报名信息', null=True, blank=True)
-    game = models.ForeignKey(Game, verbose_name='游戏名称',related_name='rooms', null=True, blank=True, on_delete=CASCADE)
+    game = models.ForeignKey(Game, verbose_name='游戏名称', related_name='rooms', null=True, blank=True, on_delete=CASCADE)
     start_time = models.DateTimeField(u'开始报名时间')
     end_time = models.DateTimeField(u'结束报名时间')
     game_password = models.CharField('游戏密码', max_length=200, null=True, blank=True)
@@ -133,11 +133,25 @@ class ApplyDetail(BaseTime):
 ORDER_TYPE = (
     (1, u'游戏房间报名'),
     (2, u'充值'),
-
 )
 
+CHECKED = (
+    (0, u'申请拒绝'),
+    (1, u'审核通过'),
+)
 
 class CheckWinner(BaseTime):
     room_id = models.IntegerField('房间ID')
-    game_user_name = models.CharField('游戏昵称',max_length=32)
+    game_user_name = models.CharField('游戏昵称', max_length=32)
     img = models.CharField(u'状态', max_length=512)
+    checked = models.IntegerField(u'状态',choices=CHECKED,default=0)
+
+    class Meta:
+        verbose_name = '报名明细'
+        verbose_name_plural = verbose_name
+
+    def __str__(self):
+        return '%s' % self.game_user_name
+
+    def __unicode__(self):
+        return '%s' % self.game_user_name

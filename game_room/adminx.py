@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Room, Banner, Game, Rank
+from .models import Room, Banner, Game, Rank, CheckWinner
 import xadmin
 
 
@@ -24,8 +24,12 @@ class RankAdmin(object):
 class BannerAdmin(object):
     list_display = ['link', 'des', 'pic']
 
+class WinnerAdmin(object):
+    list_display = ['room_id', 'game_user_name', 'img']
+    search_fields = ['room']
 
 xadmin.site.register(Rank, RankAdmin)
 xadmin.site.register(Game, GamesAdmin)
 xadmin.site.register(Banner, BannerAdmin)
 xadmin.site.register(Room, RoomAdmin)
+xadmin.site.register(CheckWinner, WinnerAdmin)
