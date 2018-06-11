@@ -2,58 +2,53 @@
 import random
 
 import time
-
 from django.contrib.auth import authenticate
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 from django.contrib.sessions.models import Session
 from django.db import IntegrityError
 from django.db.models import Sum
 from django.http import JsonResponse
 from django.utils import timezone
 import base64
-
+from django.contrib.auth import login  as auth_login
 from django.utils.six import b
 from django.views.decorators.http import require_POST, require_GET
 
 from TZGameServer.middlewares import auth_required
 from TZGameServer.utils import AliyunSMS
 from exception.base import TZBaseError
-from exception.user_error import UserExist
+from exception.user_error import UserExist, UserDoesNotExist, LoginError
 from game_room.models import ApplyDetail
-from tz_user.forms import SignUpForm
+from tz_user.forms import SignUpForm, ForgetPasswordForm
 import hashlib
 from tz_user.models import TZUser, Mail
 
 
 @require_POST
 def login(request):
-    data = {}
+    data = {'code': 1, 'error': '', 'data': {}}
     tel = request.POST.get('tel')
     password = request.POST.get('password')
-    user = authenticate(username=tel, password=password)
-    if user:
-        md5 = hashlib.md5()
-        md5.update(user.username.encode("utf8"))
-        base64_code = md5.hexdigest()
-        expire_time = timezone.now() + timezone.timedelta(days=7)
-        Session.objects.update_or_create(session_key=base64_code, defaults={'session_data': user.tz_user.id, 'expire_date': expire_time})
-        data['data'] = {
-            'id': user.tz_user.id,
-            'invite_code': user.tz_user.invite_code,
-            'nickname': user.tz_user.nickname,
-            'tel': user.tz_user.tel,
-            'tztoken': base64_code,
-            'card': user.tz_user.card,
-        }
-    else:
-        data['code'] = 404
-        data['msg'] = '用户不存在'
+    try:
+        user = authenticate(username=tel, password=password)
+        if not user:
+            raise LoginError()
+        auth_login(request, user)
+        data['data'] = user.tz_user.sample_data()
+
+    except TZBaseError as e:
+        data['code'] = e.code
+        data['msg'] = e.msg
     return JsonResponse(data=data)
+
+
+import psycopg2
 
 
 @require_GET
 def check_token(request):
     data = {}
-    print(request.COOKIES)
     token = request.GET.get('tztoken')
     session = Session.objects.filter(session_key=token).first()
     if not session:
@@ -75,58 +70,25 @@ def check_token(request):
     return JsonResponse(data=data)
 
 
-# @require_POST
+@require_POST
 def phone_code(request):
     data = {}
-    tel = request.GET.get('tel', '') or request.POST.get('tel', '')
-    user = TZUser.objects.filter(tel=tel)
+    tel = request.POST.get('tel', '')
     try:
-        if user:
-            raise UserExist()
-        if request.method == 'GET':
-            v_code = request.GET.get('code', '')
-            # 取session
-
-            session_key = Session.objects.filter(session_key=tel).first()
-            if not session_key:
-                data['code'] = 400
-                data['msg'] = '验证码过期'
-            elif not tel:
-                data['code'] = 400
-                data['msg'] = '请填写手机号'
-            elif session_key.session_data == v_code:
-                # 验证成功
-                data['code'] = 1
-            else:
-                data['code'] = 400
-                data['msg'] = '验证码错误'
-
         if request.method == 'POST':
-            sission_time = Session.objects.filter(session_key=tel).first()
-            if sission_time:
-                ex_time = int(time.mktime(sission_time.expire_date.timetuple()))
-                if (time.time() - ex_time) > 60:
-                    sission_time.delete()
-                else:
-                    data['code'] = 400
-                    data['msg'] = '操作太频繁'
-                    return JsonResponse(data=data)
             if not tel:
                 data['code'] = 400
                 data['msg'] = '请填写手机号'
             else:
                 v_code = random.randint(1000, 9999)
-                import logging
-                logger = logging.getLogger("django")  # 为loggers中定义的名称
-                logger.info(v_code)
+                print(v_code)
                 cli = AliyunSMS(access_key_id='LTAIumaptAEoL3Xr', access_secret='xgQgKuSZ8RvOIMxrk8e7eqSHejqtza')
                 cli.request(phone_numbers=tel,
                             sign='王者挑战赛',
                             template_code='SMS_126260131',
                             template_param={'code': str(v_code)})
-                # 存session
-                expire_time = timezone.now() + timezone.timedelta(seconds=60)
-                Session.objects.create(session_key=tel, session_data=v_code, expire_date=expire_time)
+                request.session['v_code_expire_time'] = timezone.now() + timezone.timedelta(seconds=60)
+                request.session['v_code'] = v_code
                 data['code'] = 1
     except TZBaseError as e:
         data['code'] = e.code
@@ -136,28 +98,41 @@ def phone_code(request):
 
 @require_POST
 def register(request):
-    signup_form = SignUpForm(request.POST)
+    signup_form = SignUpForm(request.POST, request=request)
     data = {}
     try:
         if signup_form.is_valid():
-            user = signup_form.save(commit=True)
+            user = signup_form.save()
+            data['data'] = user.sample_data()
             data['code'] = 1
-            expire_time = timezone.now() + timezone.timedelta(days=3)
-            md5 = hashlib.md5()
-            md5.update(user.tel.encode("utf8"))
-            base64_code = md5.hexdigest()
-            Session.objects.create(session_key=base64_code, session_data=user.id, expire_date=expire_time)
 
-            data['data'] = {
-                'id': user.id,
-                'token': base64_code,
-                'tel': user.tel,
-                'nickname': user.nickname,
-                'invite_code': user.invite_code,
-                'card': user.card,
-            }
         else:
             print(signup_form.errors)
+    except TZBaseError as e:
+        data['msg'] = e.msg
+        data['code'] = e.code
+    return JsonResponse(data=data)
+
+
+@auth_required
+def user_info(request):
+    data = {'code': 1}
+    data['data'] = request.user.tz_user.sample_data()
+    return JsonResponse(data=data)
+
+
+@require_POST
+def forget_password(request):
+    form = ForgetPasswordForm(request.POST, request=request)
+    data = {}
+    try:
+        if form.is_valid():
+            user = form.save()
+            data['data'] = user.sample_data()
+            data['code'] = 1
+            auth_login(request, user.auth)
+        else:
+            print(form.errors)
     except TZBaseError as e:
         data['msg'] = e.msg
         data['code'] = e.code
@@ -169,14 +144,11 @@ def register(request):
 def mail(request):
     data = []
     user = request.user
-    print(user)
-    mails = Mail.objects.filter(user=user).order_by('-id')
+    mails = Mail.objects.filter(user=user.tz_user).order_by('-id')
     for _mail in mails:
         data.append({
             'id': _mail.id,
-            'meta': {
-                'date': _mail.created.strftime("%Y-%m-%d %H:%M:%S"),
-            },
+            'date': _mail.created.strftime("%Y-%m-%d %H:%M:%S"),
             'title': _mail.title,
             'desc': _mail.info,
             'user': _mail.user.nickname,
@@ -204,16 +176,23 @@ def invite_user(request):
 @require_POST
 @auth_required
 def card(request):
-    data = {}
+    data = {"code": 1, "data": {}}
     card_type = int(request.POST.get('card_type'))
-    user = request.user
-    print(card_type)
-    if card_type == 5:
-        user.card += 5
-    elif card_type == 2:
-        user.card += 2
-    else:
-        user.card += 1
-    user.save()
+    user = request.user.tz_user
     data['code'] = 1
-    return JsonResponse(data={'data': data})
+
+    if user.card >= 5:
+        data['code'] = 101
+        data['msg'] = f'您还有{user.card}张未使用，暂时不能领取'
+    else:
+        if card_type == 5:
+            user.card += 5
+            data['data']['count'] = 5
+        elif card_type == 2:
+            user.card += 2
+            data['data']['count'] = 2
+        else:
+            user.card += 1
+            data['data']['count'] = 1
+        user.save()
+    return JsonResponse(data)

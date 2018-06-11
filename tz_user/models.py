@@ -24,7 +24,8 @@ class TZUser(BaseTime):
     money = models.IntegerField(u'余额', default=0)
     invite_user = models.ForeignKey('self', related_name='invite', null=True, blank=True, on_delete=CASCADE)
     invite_code = models.IntegerField(default=invite_code, unique=True)
-    card = models.IntegerField('激活卡',default=0)
+    card = models.IntegerField('报名卡', default=0)
+    gain = models.IntegerField('累计盈利', default=0)
 
     class Meta:
         verbose_name = '用户信息'
@@ -35,6 +36,18 @@ class TZUser(BaseTime):
 
     def __unicode__(self):
         return '%s' % self.nickname
+
+    def sample_data(self):
+        return {
+            "id": self.id,
+            "tel": self.tel,
+            "money": self.money,
+            "nickname": self.nickname,
+            "card": self.card,
+            "invite_code": self.invite_code,
+            "gain": self.gain
+
+        }
 
 
 class Mail(BaseTime):
@@ -51,4 +64,3 @@ class Mail(BaseTime):
 
     def __unicode__(self):
         return '%s' % self.title
-

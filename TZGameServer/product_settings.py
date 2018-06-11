@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'corsheaders',
     'tz_user',
     'game_room',
-    'xadmin',
     'crispy_forms',
     'reversion',
 

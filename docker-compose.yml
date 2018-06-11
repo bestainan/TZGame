@@ -1,0 +1,38 @@
+version: '3'
+services:
+
+  web:
+    restart: always
+    container_name: robot_web
+    build: .
+    ports:
+        - "8000:8000"
+    volumes:
+      - .:/web
+    depends_on:
+      - cache
+      - db
+    command: python manage.py runserver 0.0.0.0:8000
+#    command: sh gunicorn.sh
+  cache:
+    image: redis
+    container_name: robot_redis
+    ports:
+      - "6379:6379"
+
+  nginx:
+    restart: always
+    container_name: robot_nginx
+    build: ./nginx
+    ports:
+      - "80:80"
+    links:
+      - web
+    depends_on:
+      - web
+    volumes:
+      - ./nginx/local:/etc/nginx/conf.d
+
+
+  db:
+    image: postgres

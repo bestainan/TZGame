@@ -1,7 +1,9 @@
 Django==2.0.2
 mysqlclient
 django-cors-headers
-#django-xadmin
 gevent
 gunicorn
 requests
+django-crontab
+psycopg2
+psycopg2-binary

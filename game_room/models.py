@@ -40,7 +40,7 @@ ROOM_STATUS = (
 
 class Room(BaseTime):
     name = models.CharField('房间名称', max_length=200, null=True, blank=True)
-    apply_money = models.IntegerField('报名费')
+    apply_money = models.IntegerField('报名卡数量',default=1)
     hot = models.BooleanField('热门', default=False)
     status = models.IntegerField(u'状态', choices=ROOM_STATUS, default=1)
     pic = models.CharField('图片地址', max_length=200, null=True, blank=True)
@@ -109,13 +109,12 @@ def order_oid():
 
 
 class ApplyDetail(BaseTime):
-    id = models.CharField('订单id', max_length=256, default=order_oid, primary_key=True)
+    id = models.CharField('订单id', max_length=250, default=order_oid, primary_key=True)
     trade_id = models.CharField('支付宝订单ID', max_length=128)  # 支付宝交易号
     nickname = models.CharField('游戏角色名', max_length=128)  # 支付宝交易号
     gmt_payment = models.DateTimeField('支付时间', null=True, blank=True)  # 支付时间
     money = models.IntegerField('报名金额')
     user = models.ForeignKey(TZUser, null=True, blank=True, on_delete=CASCADE)
-
     room = models.ForeignKey(Room, related_name='apply_detail', null=True, blank=True, on_delete=CASCADE)
     status = models.IntegerField(u'状态', choices=APPLY_STATUS, default=1)
 

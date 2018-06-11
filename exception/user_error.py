@@ -36,6 +36,9 @@ class UserDoesNotExist(TZBaseError):
     code = 404
     msg = u'用户不存在'
 
+class LoginError(TZBaseError):
+    code = 404
+    msg = u'手机号或密码不正确'
 
 class UserExist(TZBaseError):
     code = 404
@@ -75,3 +78,12 @@ class ALiPayNameRequire(TZBaseError):
 class ALiPayAccountRequire(TZBaseError):
     code = 400
     msg = u'支付宝账号不能为空'
+
+
+class CaptchaError(TZBaseError):
+    code = 400
+    msg = u'验证码错误'
+
+class CaptchaExpire(TZBaseError):
+    code = 400
+    msg = u'验证码过期 请重新获取'

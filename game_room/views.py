@@ -7,12 +7,16 @@ import random
 
 import time
 
+from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.db.models import F
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 
 from TZGameServer.middlewares import auth_required
 from exception.base import TZBaseError
-from exception.room_error import ApplyAlready
+from exception.room_error import ApplyAlready, MoneyNotnough
+from game_room.forms import CreateRoomForm
 from game_room.models import Room, Banner, Game, ApplyDetail, CheckWinner
 from tz_user.models import TZUser, Mail
 
@@ -58,6 +62,23 @@ def room(request):
         })
     return JsonResponse(data={'data': data})
 
+@require_POST
+@auth_required
+def create_room(request):
+    form = CreateRoomForm(request.POST)
+    data = {"code":1,"msg":''}
+    try:
+        if form.is_valid():
+            room = form.save()
+            data['data'] = {
+                'id': room.id,
+            }
+        else:
+            print(form.errors)
+    except TZBaseError as e:
+        data['msg'] = e.msg
+        data['code'] = e.code
+    return JsonResponse(data=data)
 
 @require_GET
 @auth_required
@@ -65,17 +86,9 @@ def room_info(request):
     room_id = request.GET.get('room_id')
     user = request.user
     room = Room.objects.filter(pk=room_id).first()
-    rank = []
     has_apply = False
-    if ApplyDetail.objects.filter(user=user, room=room):
+    if ApplyDetail.objects.filter(user=user.tz_user, room=room):
         has_apply = True
-    for _rank in room.rank.all():
-        rank.append(
-            {
-                'name': _rank.user.nickname,
-                'index': _rank.index
-            }
-        )
     data = {
         "id": room.id,
         "name": room.name,
@@ -87,9 +100,8 @@ def room_info(request):
         "max_count": room.max_count,
         "current_count": room.current_count,
         "has_apply": has_apply,
-        "rank": rank,
     }
-    return JsonResponse(data={'data': data})
+    return JsonResponse(data=data)
 
 
 @require_GET
@@ -111,35 +123,20 @@ def banners(request):
 def apply_history(request):
     data = []
     user = request.user
-    detail = ApplyDetail.objects.filter(user=user)
+    detail = ApplyDetail.objects.filter(user=user.tz_user)
     for _d in detail:
         data.append(
             {
                 'id': _d.id,
                 'room_id': _d.room_id,
                 'money': _d.money or 0,
-                'value_list': [
-                    {
-                        'label': '房间名称',
-                        'value': _d.room.name
-                    },
-                    {
-                        'label': '房间编号',
-                        'value': _d.room.id
-                    },
-
-                    {
-                        'label': '状态',
-                        'value': _d.room.get_status_display()
-                    },
-                    {
-                        'label': '描述',
-                        'value': _d.room.des
-                    }
-                ]
+                'create_time':_d.created,
+                'max_count':_d.room.max_count,
+                'game_name':_d.room.game.name,
+                'status':_d.room.get_status_display(),
+                'apply_money':_d.room.apply_money,
             }
         )
-        print(data)
     return JsonResponse(data={'data': data})
 
 
@@ -148,16 +145,17 @@ def apply_history(request):
 def room_apply(request):
     data = {}
     room_id = request.POST.get('room_id')
-    user_id = request.POST.get('user_id')
+    user = request.user.tz_user
     name = request.POST.get('name')
-    print(room_id)
     room = Room.objects.get(pk=room_id)
-    user = TZUser.objects.get(pk=user_id)
     a_d = ApplyDetail.objects.filter(user=user, room=room)
-    print(a_d)
     try:
         if a_d:
             raise ApplyAlready()
+        if user.card < room.apply_money:
+            raise MoneyNotnough()
+        user.card = F('card') - room.apply_money
+        user.save()
         ApplyDetail.objects.create(
             money=room.apply_money,
             nickname=name,
@@ -199,12 +197,12 @@ def room_apply_balance(request):
 
 def upload_img(request):
     name = hashlib.new('md5', str(request.FILES['file']).encode()).hexdigest()
-    handle_upload_file(request.FILES['file'], str(request.FILES['file']))
-    return JsonResponse(data={'url': 'http://192.168.0.103:8000/media/uploads/{name}'.format(name=name)})
+    handle_upload_file(request.FILES['file'], name)
+    return JsonResponse(data={'url': 'http://127.0.0.1/static/uploads/{name}'.format(name=name)})
 
 
 def handle_upload_file(file, filename):
-    path = 'media/uploads/'  # 上传文件的保存路径，可以自己指定任意的路径
+    path = 'static/uploads/'  # 上传文件的保存路径，可以自己指定任意的路径
     if not os.path.exists(path):
         os.makedirs(path)
     with open(path + filename, 'wb+')as destination:
@@ -213,9 +211,6 @@ def handle_upload_file(file, filename):
 
 
 def winner(request):
-
-
-
     room_id = request.POST.get('room_id')
     name = request.POST.get('name')
     img = request.POST.get('img')

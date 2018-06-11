@@ -13,6 +13,7 @@ https://docs.djangoproject.com/en/2.0/ref/settings/
 import os
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
+
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # Quick-start development settings - unsuitable for production
@@ -24,7 +25,7 @@ SECRET_KEY = 'rjqsjb$!195!7rg=zih(nkcp7o&9424yk2r#v#f-a_n#+jr+o-'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['*', 'wz.jiuxingjinfu.cn', 'localhost:8081', 'localhost:8080',]
+ALLOWED_HOSTS = ['*']
 
 # Application definition
 
@@ -46,17 +47,36 @@ INSTALLED_APPS = [
     'alipay'
 
 ]
-
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = True
 CORS_ORIGIN_WHITELIST = (
-    '*',
-    'wz.jiuxingjinfu.cn',
-    'localhost:8080',
-    'localhost:8082',
-    '192.168.0.103:8080',
-    '192.168.0.103:8081',
-    'localhost:8081',
-    '127.0.0.1:8080'
+    '*'
 )
+CORS_ALLOW_METHODS = (
+    'DELETE',
+    'GET',
+    'OPTIONS',
+    'PATCH',
+    'POST',
+    'PUT',
+    'VIEW',
+)
+
+CORS_ALLOW_HEADERS = (
+    'XMLHttpRequest',
+    'X_FILENAME',
+    'accept-encoding',
+    'authorization',
+    'content-type',
+    'dnt',
+    'origin',
+    'user-agent',
+    'x-csrftoken',
+    'x-requested-with',
+    'Pragma',
+)
+SESSION_SERIALIZER = 'django.contrib.sessions.serializers.PickleSerializer'
+
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
@@ -66,6 +86,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'corsheaders.middleware.CorsMiddleware',
+    # 'django.contrib.auth.middleware.SessionAuthenticationMiddleware',
     'django.middleware.common.CommonMiddleware',
 ]
 
@@ -89,21 +110,17 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'TZGameServer.wsgi.application'
-
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
 # Database
 # https://docs.djangoproject.com/en/2.0/ref/settings/#databases
 #
 # DATABASES = {
 #     'default': {
-#         'ENGINE': 'django.db.backends.mysql',
-#         'NAME': 'game_apply',
-#         'USER': 'root',
-#         'PASSWORD': '',
-#         'HOST': '127.0.0.1',
-#         'PORT': 3306,
-#         'OPTIONS': {
-#             'charset': 'utf8mb4',
-#         },
+#         'ENGINE': 'django.db.backends.postgresql_psycopg2',
+#         'NAME': 'postgres',
+#         'USER': 'postgres',
+#         'HOST': 'db',
+#         'PORT': 5432,
 #     }
 # }
 DATABASES = {
@@ -112,6 +129,20 @@ DATABASES = {
         'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
     }
 }
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'django.db.backends.mysql',
+#         'NAME': 'tzgame',
+#         'USER': 'root',
+#         'PASSWORD': '1234qwer',
+#         # 'HOST': 'rm-2zes5cg65d2tk8t0b.mysql.rds.aliyuncs.com',
+#         'HOST': 'db',
+#         'PORT': 3306,
+#         'OPTIONS': {
+#             'charset': 'utf8mb4',
+#         },
+#     }
+# }
 
 # PROJECT_DIR = '/Users/robot/TZGame'
 PROJECT_DIR = '/home/www/TZGame'
@@ -136,7 +167,6 @@ AUTH_PASSWORD_VALIDATORS = [
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.0/topics/i18n/
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
 LANGUAGE_CODE = 'zh-Hans'
 
 TIME_ZONE = 'UTC'
@@ -149,10 +179,14 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/2.0/howto/static-files/
-MEDIA_URL='/media/'
-MEDIA_ROOT=os.path.join(BASE_DIR,'media').replace("\\","/")
+MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media').replace("\\", "/")
 
 STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'static').replace("\\", "/")
+# STATICFILES_DIRS = [
+#     os.path.join(BASE_DIR, 'static'),
+# ]
 CRONJOBS = [
     ('*/1 * * * *', 'game_room.tasks.scan_room', '>> /var/log/paqu/scan_room.log'),
 ]

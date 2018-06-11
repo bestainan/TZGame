@@ -1,4 +1,4 @@
-#coding:utf-8
+# coding:utf-8
 import uuid
 import hmac
 import json
@@ -8,6 +8,8 @@ import datetime
 from collections import OrderedDict
 from urllib.parse import quote
 
+from django.http import JsonResponse
+
 
 def _generate_sign(secret, tosign):
     mac = hmac.new(secret.encode("utf-8"), tosign.encode("utf-8"), "sha1")
@@ -15,7 +17,7 @@ def _generate_sign(secret, tosign):
 
 
 def urlencode(url):
-    return quote(url).replace("+", "%20").replace("*", "%2A").\
+    return quote(url).replace("+", "%20").replace("*", "%2A"). \
         replace("%7E", "~").replace('/', '%2F')
 
 
@@ -24,8 +26,17 @@ def _get_utc():
     return utc_now.strftime('%Y-%m-%dT%H:%M:%SZ')
 
 
-class AliyunSMS:
+def auth_required(view):
+    def decorator(request, *args, **kwargs):
+        if request.user.is_authenticated:
+            return view(request, *args, **kwargs)
+        else:
+            return JsonResponse(data={"code": 10001})
 
+    return decorator
+
+
+class AliyunSMS:
     _instance = {}
 
     VERSION = '2017-05-25'

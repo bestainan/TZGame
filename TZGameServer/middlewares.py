@@ -3,25 +3,66 @@ from django.http import JsonResponse
 
 from exception.base import TZBaseError
 from tz_user.models import TZUser
+from django import http
+
+try:
+    from django.conf import settings
+
+    XS_SHARING_ALLOWED_ORIGINS = settings.XS_SHARING_ALLOWED_ORIGINS
+    XS_SHARING_ALLOWED_METHODS = settings.XS_SHARING_ALLOWED_METHODS
+    XS_SHARING_ALLOWED_HEADERS = settings.XS_SHARING_ALLOWED_HEADERS
+    XS_SHARING_ALLOWED_CREDENTIALS = settings.XS_SHARING_ALLOWED_CREDENTIALS
+except AttributeError:
+    XS_SHARING_ALLOWED_ORIGINS = '*'
+    # XS_SHARING_ALLOWED_METHODS = ['POST', 'GET', 'OPTIONS', 'PUT', 'DELETE']
+    XS_SHARING_ALLOWED_METHODS = ['POST', 'GET']
+    XS_SHARING_ALLOWED_HEADERS = ['Content-Type', '*']
+    XS_SHARING_ALLOWED_CREDENTIALS = 'true'
+
 
 def auth_required(view):
     def decorator(request, *args, **kwargs):
         data = {}
-        print(request.GET)
-        print(request.POST)
-        token = request.POST.get('tztoken') or request.GET.get('tztoken')
+
         try:
-            session = Session.objects.filter(session_key=token).first()
-            if not session:
+            if request.user.is_authenticated:
+                return view(request, *args, **kwargs)
+            else:
                 data['code'] = 10001
                 data['msg'] = '登录已过期，请重新登录！'
-            else:
-                user_id = session.session_data
-                user = TZUser.objects.filter(pk=user_id).first()
-                request.user = user
-                return view(request, *args, **kwargs)
         except TZBaseError as e:
             data['code'] = e.code
             data['msg'] = e.msg
         return JsonResponse(data=data)
+
     return decorator
+
+
+class XsSharing(object):
+    """
+    This middleware allows cross-domain XHR using the html5 postMessage API.
+
+    Access-Control-Allow-Origin: http://foo.example
+    Access-Control-Allow-Methods: POST, GET, OPTIONS, PUT, DELETE
+
+    Based off https://gist.github.com/426829
+    """
+
+    def process_request(self, request):
+        if 'HTTP_ACCESS_CONTROL_REQUEST_METHOD' in request.META:
+            response = http.HttpResponse()
+            response['Access-Control-Allow-Origin'] = XS_SHARING_ALLOWED_ORIGINS
+            response['Access-Control-Allow-Methods'] = ",".join(XS_SHARING_ALLOWED_METHODS)
+            response['Access-Control-Allow-Headers'] = ",".join(XS_SHARING_ALLOWED_HEADERS)
+            response['Access-Control-Allow-Credentials'] = XS_SHARING_ALLOWED_CREDENTIALS
+            return response
+
+        return None
+
+    def process_response(self, request, response):
+        response['Access-Control-Allow-Origin'] = XS_SHARING_ALLOWED_ORIGINS
+        response['Access-Control-Allow-Methods'] = ",".join(XS_SHARING_ALLOWED_METHODS)
+        response['Access-Control-Allow-Headers'] = ",".join(XS_SHARING_ALLOWED_HEADERS)
+        response['Access-Control-Allow-Credentials'] = XS_SHARING_ALLOWED_CREDENTIALS
+
+        return response
