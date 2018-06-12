@@ -11,7 +11,6 @@ services:
       - .:/web
     depends_on:
       - cache
-      - db
     command: python manage.py runserver 0.0.0.0:8000
 #    command: sh gunicorn.sh
   cache:
@@ -33,6 +32,6 @@ services:
     volumes:
       - ./nginx/local:/etc/nginx/conf.d
 
-
-  db:
-    image: postgres
+#
+#  db:
+#    image: postgres
