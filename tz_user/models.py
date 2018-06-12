@@ -23,9 +23,10 @@ class TZUser(BaseTime):
     bank_card_name = models.CharField(_('银行户名'), max_length=20, null=True, blank=True)
     money = models.IntegerField(u'余额', default=0)
     invite_user = models.ForeignKey('self', related_name='invite', null=True, blank=True, on_delete=CASCADE)
-    invite_code = models.IntegerField(default=invite_code, unique=True)
+    invite_code = models.IntegerField('邀请码', default=invite_code, unique=True)
     card = models.IntegerField('报名卡', default=0)
-    gain = models.IntegerField('累计盈利', default=0)
+    total = models.IntegerField('已赚取奖励', default=0)
+    add_money = models.IntegerField('获胜者加钱', default=0)
 
     class Meta:
         verbose_name = '用户信息'
@@ -45,7 +46,7 @@ class TZUser(BaseTime):
             "nickname": self.nickname,
             "card": self.card,
             "invite_code": self.invite_code,
-            "gain": self.gain
+            "total": self.total
 
         }
 

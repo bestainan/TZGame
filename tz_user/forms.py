@@ -16,7 +16,7 @@ class SignUpForm(forms.Form):
     password1 = forms.CharField(required=False)
     password2 = forms.CharField(required=False)
     captcha = forms.IntegerField(required=False)
-
+    invite_code = forms.IntegerField(required=False)
 
     class Meta:
         model = TZUser
@@ -62,6 +62,7 @@ class SignUpForm(forms.Form):
         from django.contrib.auth.models import User
         user_name = self.cleaned_data['tel']
         password = self.cleaned_data['password1']
+        invite_code = self.cleaned_data['invite_code']
 
         auth_user = User.objects.create_user(username=user_name)
         auth_user.set_password(password)
@@ -70,6 +71,11 @@ class SignUpForm(forms.Form):
             "auth": auth_user,
             "tel": user_name,
         }
+        if invite_code:
+            invite_user = TZUser.objects.filter(invite_code=invite_code).fitst()
+        q["invite_user"] = invite_user
+
+
         user =  TZUser.objects.create(**q)
         auth_user = authenticate(username=user_name, password=password)
         login(self.request, auth_user)
